@@ -1,0 +1,46 @@
+@inject IJSRuntime JS
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private static uint IdCounter = 0;
+
+    public uint Id = 0;
+
+    private Camera? camera;
+
+    [CascadingParameter]
+    private Renderer renderer { get; set; } = null!;
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (renderer is null)
+        {
+            throw new ArgumentNullException(nameof(renderer), "Scene must be child of <Renderer>");
+        }
+
+        Id = Interlocked.Increment(ref IdCounter);
+        await JS.InvokeVoidAsync("CreateScene", Id);
+    }
+
+    internal void SetCamera(Camera c)
+    {
+        this.camera = c;
+        _ = renderer.RenderSceneAsync(Id, c.Id);
+        StateHasChanged();
+    }
+
+    public async Task Render()
+    {
+        if (camera is null)
+        {
+            throw new ArgumentNullException(nameof(camera));
+        }
+        await renderer.RenderSceneAsync(Id, camera.Id);
+    }
+}

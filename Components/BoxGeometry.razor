@@ -1,0 +1,32 @@
+@inject IJSRuntime JS
+
+@code {
+    private static uint IdCounter = 0;
+
+    public uint Id = 0;
+
+    [Parameter]
+    public float Width { get; set; } = 1;
+
+    [Parameter]
+    public float Height { get; set; } = 1;
+
+    [Parameter]
+    public float Depth { get; set; } = 1;
+
+    [CascadingParameter]
+    private Mesh mesh { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (mesh is null)
+        {
+            throw new ArgumentNullException(nameof(mesh), "box geomtry must exist within a mesh");
+        }
+
+        Id = Interlocked.Increment(ref IdCounter);
+        await JS.InvokeVoidAsync("CreateBoxGeometry", Id, Width, Height, Depth);
+
+        await mesh.SetGeometry(this);
+    }
+}

@@ -1,7 +1,17 @@
 ﻿@page "/"
 
+@using BlazorThreeJs.Components
+@using System.Drawing;
+
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<Renderer>
+    <Scene>
+        <Camera />
+        <HemisphereLight SkyColor="Color.Blue" GroundColor="Color.Green" Intesity="1" />
+        <Mesh CastShadow="true">
+            <BoxGeometry Width="1" Height="1" Depth="1" />
+            <MeshPhongMaterial Color="Color.Firebrick" />
+        </Mesh>
+    </Scene>
+</Renderer>

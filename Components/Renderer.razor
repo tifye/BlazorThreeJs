@@ -1,0 +1,33 @@
+@inject IJSRuntime JS
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private List<Scene> scenes = new();
+    private Scene? activeScene;
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    internal void AddScene(Scene scene)
+    {
+        scenes.Add(scene);
+        if (scenes.Count == 1)
+        {
+            activeScene = scene;
+        }
+        StateHasChanged();
+    }
+
+    internal async Task RenderSceneAsync(uint scene, uint camera)
+    {
+        await JS.InvokeVoidAsync("RenderScene", scene, camera);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await JS.InvokeVoidAsync("CreateRenderer");
+    }
+}

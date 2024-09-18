@@ -1,0 +1,54 @@
+@inject IJSRuntime JS
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private static uint IdCounter = 0;
+
+    public uint Id = 0;
+
+    [CascadingParameter]
+    private Scene scene { get; set; } = null!;
+
+    public BoxGeometry? Geometry { get; set; }
+
+    public MeshPhongMaterial? Material { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter]
+    public bool CastShadow { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        if (scene is null)
+        {
+            throw new ArgumentNullException(nameof(scene), "mesh must exist within a scene");
+        }
+
+        Id = Interlocked.Increment(ref IdCounter);
+    }
+
+    internal async Task SetGeometry(BoxGeometry geo)
+    {
+        Geometry = geo;
+        await CreateMesh();
+    }
+
+    internal async Task SetMaterial(MeshPhongMaterial mat)
+    {
+        Material = mat;
+        await CreateMesh();
+    }
+
+    private async Task CreateMesh()
+    {
+        if (Geometry is null || Material is null) return;
+        await JS.InvokeVoidAsync("CreateMesh", Id, Geometry.Id, Material.Id, CastShadow);
+        await JS.InvokeVoidAsync("AddMeshToScene", Id, scene.Id);
+        await scene.Render();
+    }
+}
