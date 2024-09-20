@@ -3,15 +3,88 @@
 @using BlazorThreeJs.Components
 @using System.Drawing;
 
+@inject IJSRuntime JS
+
 <PageTitle>Home</PageTitle>
 
 <Renderer>
     <Scene>
         <Camera />
-        <HemisphereLight SkyColor="Color.Blue" GroundColor="Color.Green" Intesity="1" />
-        <Mesh CastShadow="true">
+        <HemisphereLight SkyColor="Color.Blue" GroundColor="Color.Green" Intesity="3" />
+        <DirectionalLight Color="Color.YellowGreen" Y="1" X="2" RotateX="180" Intesity="2" />
+        <Mesh CastShadow="true" X="MeshX">
             <BoxGeometry Width="1" Height="1" Depth="1" />
+            <MeshPhongMaterial Color="Color.White" />
+        </Mesh>
+
+        <Mesh @ref="mesh2" CastShadow="true" X="0" Y="1.5f">
+            <BoxGeometry Width="1" Height="1" Depth="1" />
+            <MeshPhongMaterial Color="Color.White" />
+        </Mesh>
+
+        <Mesh @ref="mesh3" CastShadow="true" Y="-2.5f">
+            <BoxGeometry Width="1" Height="3" Depth="1" />
+            <MeshPhongMaterial Color="Color.White" />
+        </Mesh>
+
+        <DirectionalLight Color="Color.YellowGreen" Y="1" X="-2" RotateX="360" Intesity="10" />
+        <Mesh CastShadow="true" X="@(7+pOffset)">
+            <SphereGeometry Radius="0.75f" WidthSegments="32" HeightSegments="16" />
+            <MeshPhongMaterial Color="Color.IndianRed" />
+        </Mesh>
+        <Mesh CastShadow="true" X="@(5+pOffset)">
+            <SphereGeometry Radius="0.75f" WidthSegments="32" HeightSegments="16" />
+            <MeshPhongMaterial Color="Color.IndianRed" />
+        </Mesh>
+        <Mesh CastShadow="true" X="@(6+pOffset)" Y="1.5f">
+            <BoxGeometry Width="1" Height="3" Depth="1" />
             <MeshPhongMaterial Color="Color.Firebrick" />
+        </Mesh>
+        <Mesh CastShadow="true" X="@(6+pOffset)" Y="3">
+            <SphereGeometry Radius="0.5f" WidthSegments="32" HeightSegments="16" />
+            <MeshPhongMaterial Color="Color.DeepPink" />
         </Mesh>
     </Scene>
 </Renderer>
+
+@code {
+    private DotNetObjectReference<Home> objRef = null!;
+    private int pOffset = 10;
+
+    private System.Timers.Timer timer = null!;
+    private DateTime firstTick = DateTime.Now;
+
+    private float MeshX { get; set; } = 0;
+
+    private Mesh mesh2 { get; set; } = null!;
+    private Mesh mesh3 { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        objRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("RegisterOnAnimationFrame", objRef);
+    }
+
+    protected override void OnInitialized()
+    {
+        timer = new(20);
+        timer.Elapsed += OnTimerTick;
+        timer.AutoReset = true;
+        timer.Enabled = true;
+    }
+
+    private void OnTimerTick(object? source, System.Timers.ElapsedEventArgs args)
+    {
+        var eslaped = args.SignalTime - firstTick;
+        MeshX = MathF.Sin((float)eslaped.TotalSeconds);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnAnimationFrame(double delta)
+    {
+        var eslaped = DateTime.Now - firstTick;
+        await mesh2.SetPosition(MathF.Sin((float)eslaped.TotalSeconds), mesh2.Y, mesh2.Z);
+        await mesh3.SetRotation(0, 0, MathF.Sin((float)eslaped.TotalSeconds) * MathF.PI);
+    }
+}

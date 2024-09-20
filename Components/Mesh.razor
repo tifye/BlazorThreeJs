@@ -7,12 +7,14 @@
 @code {
     private static uint IdCounter = 0;
 
+    private IJSObjectReference? meshRef { get; set; }
+
     public uint Id = 0;
 
     [CascadingParameter]
     private Scene scene { get; set; } = null!;
 
-    public BoxGeometry? Geometry { get; set; }
+    public IGeomtry? Geometry { get; set; }
 
     public MeshPhongMaterial? Material { get; set; }
 
@@ -21,6 +23,25 @@
 
     [Parameter]
     public bool CastShadow { get; set; } = false;
+
+    [Parameter]
+    public float X { get; set; }
+
+    [Parameter]
+    public float Y { get; set; }
+
+    [Parameter]
+    public float Z { get; set; }
+
+    [Parameter]
+    public float RotationX { get; set; }
+
+    [Parameter]
+    public float RotationY { get; set; }
+
+    [Parameter]
+    public float RotationZ { get; set; }
+
 
     protected override void OnInitialized()
     {
@@ -32,7 +53,16 @@
         Id = Interlocked.Increment(ref IdCounter);
     }
 
-    internal async Task SetGeometry(BoxGeometry geo)
+    protected override async Task OnParametersSetAsync()
+    {
+        if (meshRef is not null)
+        {
+            await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+            await meshRef.InvokeVoidAsync("SetRotation", RotationX, RotationY, RotationZ);
+        }
+    }
+
+    internal async Task SetGeometry(IGeomtry geo)
     {
         Geometry = geo;
         await CreateMesh();
@@ -47,8 +77,30 @@
     private async Task CreateMesh()
     {
         if (Geometry is null || Material is null) return;
-        await JS.InvokeVoidAsync("CreateMesh", Id, Geometry.Id, Material.Id, CastShadow);
+        meshRef = await JS.InvokeAsync<IJSObjectReference>("CreateMesh", Id, Geometry.Id, Material.Id, CastShadow);
+        await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
         await JS.InvokeVoidAsync("AddMeshToScene", Id, scene.Id);
         await scene.Render();
+    }
+
+    public async Task SetPosition(float x, float y, float z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+        await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+    }
+
+    public async Task SetRotation(float x, float y, float z)
+    {
+        RotationX = x;
+        RotationY = y;
+        RotationZ = z;
+        await meshRef.InvokeVoidAsync("SetRotation", x, y, z);
+    }
+
+    public interface IGeomtry
+    {
+        public uint Id { get; }
     }
 }

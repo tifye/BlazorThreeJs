@@ -6,13 +6,13 @@
     public uint Id { get; set; } = 0;
 
     [Parameter]
-    public float Width { get; set; } = 1;
+    public uint WidthSegments { get; set; } = 1;
 
     [Parameter]
-    public float Height { get; set; } = 1;
+    public uint HeightSegments { get; set; } = 1;
 
     [Parameter]
-    public float Depth { get; set; } = 1;
+    public float Radius { get; set; } = 1;
 
     [CascadingParameter]
     private Mesh mesh { get; set; } = null!;
@@ -21,11 +21,11 @@
     {
         if (mesh is null)
         {
-            throw new ArgumentNullException(nameof(mesh), "box geomtry must exist within a mesh");
+            throw new ArgumentNullException(nameof(mesh), "sphere geomtry must exist within a mesh");
         }
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
-        await JS.InvokeVoidAsync("CreateBoxGeometry", Id, Width, Height, Depth);
+        await JS.InvokeVoidAsync("CreateSphereGeometry", Id, Radius, WidthSegments, HeightSegments);
 
         await mesh.SetGeometry(this);
     }

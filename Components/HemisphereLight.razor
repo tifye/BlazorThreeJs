@@ -2,8 +2,6 @@
 @inject IJSRuntime JS
 
 @code {
-    private static uint IdCounter = 0;
-
     public uint Id = 0;
 
     [CascadingParameter]
@@ -25,12 +23,12 @@
             throw new ArgumentNullException(nameof(scene), "hemishpere light must exist within a scene");
         }
 
-        Id = Interlocked.Increment(ref IdCounter);
+        Id = Interlocked.Increment(ref IdCounter.Counter);
         await JS.InvokeVoidAsync("CreateHemisphereLight",
         Id,
         scene.Id,
-        $"{SkyColor.R:X2}{SkyColor.G:X2}{SkyColor.B:X2}",
-        $"{GroundColor.R:X2}{GroundColor.G:X2}{GroundColor.B:X2}",
+        $"#{SkyColor.R:X2}{SkyColor.G:X2}{SkyColor.B:X2}",
+        $"#{GroundColor.R:X2}{GroundColor.G:X2}{GroundColor.B:X2}",
         Intesity);
     }
 }

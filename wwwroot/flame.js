@@ -1,6 +1,21 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
+window.RegisterOnAnimationFrame = RegisterOnAnimationFrame
+function RegisterOnAnimationFrame(dotNetHelper) {
+    let lastFrame = Date.now()
+
+    function f() {
+        const curFrame = Date.now()
+        const delta = curFrame - lastFrame
+        lastFrame = curFrame
+        dotNetHelper.invokeMethodAsync("OnAnimationFrame", delta)
+        requestAnimationFrame(f)
+    }
+    requestAnimationFrame(f)
+}
+
+
 let renderer = null
 window.CreateRenderer = CreateRenderer
 function CreateRenderer() {
@@ -60,7 +75,52 @@ function CreateHemisphereLight(id, sceneId, sky, ground, intensity) {
     console.log(`created hemisphere light with id ${id}`)
 
     scene.add(light)
-    console.log(`add light ${id} to scene ${sceneId}`)
+    console.log(`added light ${id} to scene ${sceneId}`)
+}
+
+window.CreateDirectionalLight = CreateDirectionalLight
+function CreateDirectionalLight(id, sceneId, color, intensity) {
+    const scene = scenes.get(sceneId)
+    if (scene === undefined) {
+        console.error(`could not find scene with id ${sceneId}`)
+        return
+    }
+
+    const light = new THREE.DirectionalLight(color, intensity)
+    light.castShadow = true
+    lights.set(id, light)
+    console.log(`created driectional light with id ${id}`)
+
+    scene.add(light)
+    console.log(`added light ${id} to scene ${sceneId}`)
+}
+
+window.SetLightPosition = SetLightPosition
+function SetLightPosition(id, x, y, z) {
+    const light = lights.get(id)
+    if (light === undefined) {
+        console.error(`could not find light with id ${light}`)
+        return
+    }
+
+    light.position.x = x
+    light.position.y = y
+    light.position.z = z
+    console.log(`light position set to ${x} ${y} ${z}`)
+}
+
+window.SetLightRotate = SetLightRotate
+function SetLightRotate(id, x, y, z) {
+    const light = lights.get(id)
+    if (light === undefined) {
+        console.error(`could not find light with id ${light}`)
+        return
+    }
+
+    light.rotateX = x
+    light.rotateY = y
+    light.rotateZ = z
+    console.log(`light rotate set to ${x} ${y} ${z}`)
 }
 
 let controls;
@@ -82,6 +142,13 @@ function CreateBoxGeometry(id, width, height, depth) {
     const geometry = new THREE.BoxGeometry(width, height, depth)
     geomtries.set(id, geometry)
     console.log(`box geometry created with id ${id}`)
+}
+
+window.CreateSphereGeometry = CreateSphereGeometry
+function CreateSphereGeometry(id, radius, widthSegs, heightSegs) {
+    const geomtry = new THREE.SphereGeometry(radius, widthSegs, heightSegs)
+    geomtries.set(id, geomtry)
+    console.log(`sphere geometry created with id ${id}`)
 }
 
 const materials = new Map()
@@ -111,6 +178,21 @@ function CreateMesh(id, geoId, matId, castShadow) {
     mesh.castShadow = castShadow
     meshs.set(id, mesh)
     console.log(`mesh created with id ${id}`)
+
+    return {
+        mesh,
+        SetPosition: function(x, y, z) {
+            mesh.position.x = x
+            mesh.position.y = y
+            mesh.position.z = z
+            //console.log(`mesh ${id} position set to ${x} ${y} ${z}`)
+        },
+        SetRotation: function(x, y, z) {
+            mesh.rotation.x = x
+            mesh.rotation.y = y
+            mesh.rotation.z = z
+        }
+    }
 }
 
 window.AddMeshToScene = AddMeshToScene

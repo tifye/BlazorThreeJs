@@ -1,0 +1,58 @@
+@using System.Drawing
+@inject IJSRuntime JS
+
+@code {
+    public uint Id = 0;
+
+    [CascadingParameter]
+    private Scene scene { get; set; } = null!;
+
+    [Parameter]
+    public Color Color { get; set; } = Color.WhiteSmoke;
+
+    [Parameter]
+    public float Intesity { get; set; } = 1;
+
+    [Parameter]
+    public float X { get; set; } = 0;
+
+    [Parameter]
+    public float Y { get; set; } = 0;
+
+    [Parameter]
+    public float Z { get; set; } = 0;
+
+    [Parameter]
+    public float RotateX { get; set; } = 0;
+
+    [Parameter]
+    public float RotateY { get; set; } = 0;
+
+    [Parameter]
+    public float RotateZ { get; set; } = 0;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (scene is null)
+        {
+            throw new ArgumentNullException(nameof(scene), "directional light must exist within a scene");
+        }
+
+        Id = Interlocked.Increment(ref IdCounter.Counter);
+        await JS.InvokeVoidAsync("CreateDirectionalLight",
+        Id,
+        scene.Id,
+        $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}",
+        Intesity);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first)
+        {
+            await JS.InvokeVoidAsync("SetLightPosition", Id, X, Y, Z);
+            await JS.InvokeVoidAsync("SetLightRotate", Id, RotateX, RotateY, RotateZ);
+        }
+    }
+}
