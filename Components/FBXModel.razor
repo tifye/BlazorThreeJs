@@ -85,6 +85,15 @@
         Console.WriteLine("Model loaded");
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ObjRef is not null)
+        {
+            await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+            await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool first)
     {
         if (ObjRef is null) return;

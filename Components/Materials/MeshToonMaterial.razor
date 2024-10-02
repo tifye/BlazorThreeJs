@@ -1,4 +1,8 @@
 @using System.Drawing
+@using Microsoft.JSInterop
+
+@namespace BlazorThreeJs.Components.Materials
+
 @implements IMaterial
 @inject IJSRuntime JS
 
@@ -15,11 +19,10 @@
     {
         if (mesh is null)
         {
-            throw new ArgumentNullException(nameof(mesh), "phong material must exist within a mesh");
+            throw new ArgumentNullException(nameof(mesh), "LineBasic must exist within a mesh");
         }
 
-        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateMeshPhongMaterial",
-        $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}");
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateMeshToonMaterial", $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}");
 
         await mesh.SetMaterial(this);
     }

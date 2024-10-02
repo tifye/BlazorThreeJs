@@ -9,7 +9,6 @@ namespace BlazorThreeJs.Components
 
     public interface IMaterial
     {
-        uint Id { get; }
         IJSObjectReference ObjRef { get; }
     }
 }

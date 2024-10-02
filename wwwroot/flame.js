@@ -20,12 +20,13 @@ function RegisterOnAnimationFrame(dotNetHelper) {
 window.CreateRenderer = CreateRenderer
 function CreateRenderer(canvas) {
     const renderer = new THREE.WebGLRenderer({
-        //antialias: true,
+        antialias: true,
         canvas: canvas,
         alpha: true,
     })
     renderer.setSize(canvas.clientWidth, canvas.clientHeight)
     renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     console.log("renderer created")
 
     return {
@@ -42,30 +43,35 @@ function CreateScene(id) {
     const scene = new THREE.Scene()
     scenes.set(id, scene)
     console.log(`scene created with id ${id}`)
+
     return {
         obj: scene,
         Add: function (objRep) {
+            console.log("Adding a", objRep.obj.type, "to the scene")
             scene.add(objRep.obj)
+        }
+    }
+}
+
+window.CreatePointLight = CreatePointLight
+function CreatePointLight(color, intensity, distance, decay, castShadow) {
+    const light = new THREE.PointLight(color, intensity, distance, decay)
+    light.castShadow = castShadow
+    return {
+        obj: light,
+        SetPosition: function (x, y, z) {
+            light.position.set(x, y, z)
+        },
+        SetRotation: function (x, y, z) {
+            light.rotation.set(x, y, z)
         }
     }
 }
 
 const lights = new Map()
 window.CreateHemisphereLight = CreateHemisphereLight
-function CreateHemisphereLight(id, sceneId, sky, ground, intensity) {
-    const scene = scenes.get(sceneId)
-    if (scene === undefined) {
-        console.error(`could not find scene with id ${sceneId}`)
-        return
-    }
-
+function CreateHemisphereLight(sky, ground, intensity) {
     const light = new THREE.HemisphereLight(sky, ground, intensity)
-    lights.set(id, light)
-    console.log(`created hemisphere light with id ${id}`)
-
-    // scene.add(light)
-    // console.log(`added light ${id} to scene ${sceneId}`)
-
     return {
         obj: light,
         SetPosition: function (x, y, z) {
@@ -80,6 +86,14 @@ function CreateHemisphereLight(id, sceneId, sky, ground, intensity) {
             light.rotateZ = z
             console.log(`light rotate set to ${x} ${y} ${z}`)
         }
+    }
+}
+
+window.CreateDirectionalLightHelper = CreateDirectionalLightHelper
+function CreateDirectionalLightHelper(light, size) {
+    const helper = new THREE.DirectionalLightHelper(light.obj, size)
+    return {
+        obj: helper
     }
 }
 
@@ -88,25 +102,66 @@ function CreateDirectionalLight(id, color, intensity) {
 
     const light = new THREE.DirectionalLight(color, intensity)
     light.castShadow = true
+    light.shadow.camera.top = 200
+    light.shadow.camera.bottom = - 200
+    light.shadow.camera.left = - 200
+    light.shadow.camera.right = 200
+    light.shadow.camera.near = 0.1
+    light.shadow.camera.far = 200
+    light.shadow.radius = 5
     lights.set(id, light)
     console.log(`created driectional light with id ${id}`)
-
-    // scene.add(light)
-    // console.log(`added light ${id} to scene ${sceneId}`)
 
     return {
         obj: light,
         SetPosition: function (x, y, z) {
-            light.position.x = x
-            light.position.y = y
-            light.position.z = z
+            light.position.set(x, y, z)
             console.log(`light position set to ${x} ${y} ${z}`)
         },
         SetRotation: function (x, y, z) {
-            light.rotateX = x
-            light.rotateY = y
-            light.rotateZ = z
+            light.rotation.set(x, y, z)
             console.log(`light rotate set to ${x} ${y} ${z}`)
+        }
+    }
+}
+
+window.CreateSpotLightHelper = CreateSpotLightHelper
+function CreateSpotLightHelper(light, liveUpdate) {
+    const helper = new THREE.SpotLightHelper(light.obj)
+
+    if (liveUpdate) {
+        function f() {
+            helper.update()
+            requestAnimationFrame(f)
+        }
+        requestAnimationFrame(f)
+    }
+
+    return {
+        obj: helper
+    }
+}
+
+window.CreateSpotLight = CreateSpotLight
+function CreateSpotLight(color, intensity, distance, angle, penumbra, decay, castShadow) {
+    const light = new THREE.SpotLight(color, intensity, distance, angle, penumbra, decay)
+    light.castShadow = castShadow
+    light.shadow.camera.top = 200
+    light.shadow.camera.bottom = -200
+    light.shadow.camera.left = -200
+    light.shadow.camera.right = 200
+    light.shadow.camera.near = 0.1
+    light.shadow.camera.far = 200
+
+    console.log(`created spot light`)
+
+    return {
+        obj: light,
+        SetPosition: function (x, y, z) {
+            light.position.set(x, y, z)
+        },
+        SetRotation: function (x, y, z) {
+            light.rotation.set(x, y, z)
         }
     }
 }
@@ -182,58 +237,74 @@ function CreateBoxGeometry(id, width, height, depth) {
     const geometry = new THREE.BoxGeometry(width, height, depth)
     geomtries.set(id, geometry)
     console.log(`box geometry created with id ${id}`)
+    return {
+        obj: geometry
+    }
 }
 
 window.CreateSphereGeometry = CreateSphereGeometry
 function CreateSphereGeometry(id, radius, widthSegs, heightSegs) {
-    const geomtry = new THREE.SphereGeometry(radius, widthSegs, heightSegs)
-    geomtries.set(id, geomtry)
+    const geometry = new THREE.SphereGeometry(radius, widthSegs, heightSegs)
+    geomtries.set(id, geometry)
     console.log(`sphere geometry created with id ${id}`)
+    return {
+        obj: geometry
+    }
 }
 
-const materials = new Map()
+window.CreatePlaneGeometry = CreatePlaneGeometry
+function CreatePlaneGeometry(width, height) {
+    const geometry = new THREE.PlaneGeometry(width, height)
+    console.log(`plane geometry created`)
+    return {
+        obj: geometry
+    }
+}
+
 window.CreateMeshPhongMaterial = CreateMeshPhongMaterial
-function CreateMeshPhongMaterial(id, color) {
+function CreateMeshPhongMaterial(color) {
     const material = new THREE.MeshPhongMaterial({ color })
-    materials.set(id, material)
-    console.log(`phong material created with id ${id} and color ${color}`)
     return {
         obj: material
     }
 }
 
+window.CreateMeshToonMaterial = CreateMeshToonMaterial
+function CreateMeshToonMaterial(color) {
+    const material = new THREE.MeshToonMaterial({ color })
+    return {
+        obj: material
+    }
+}
+
+window.CreateMeshLambertMaterial = CreateMeshLambertMaterial
+function CreateMeshLambertMaterial(color) {
+    const material = new THREE.MeshLambertMaterial({ color })
+    return {
+        obj: material
+    }
+}
+
+
 const meshs = new Map()
 window.CreateMesh = CreateMesh
-function CreateMesh(id, geoId, matId, castShadow) {
-    const geo = geomtries.get(geoId)
-    if (geo === undefined) {
-        console.error(`could not find geometry with id ${geoId}`)
-        return
-    }
-
-    const mat = materials.get(matId)
-    if (mat === undefined) {
-        console.error(`could not find material with id ${matId}`)
-        return
-    }
+function CreateMesh(id, geoHolder, matHolder, castShadow) {
+    const geo = geoHolder.obj
+    const mat = matHolder.obj
 
     const mesh = new THREE.Mesh(geo, mat)
     mesh.castShadow = castShadow
+    mesh.receiveShadow = true
     meshs.set(id, mesh)
     console.log(`mesh created with id ${id}`)
 
     return {
         obj: mesh,
         SetPosition: function (x, y, z) {
-            mesh.position.x = x
-            mesh.position.y = y
-            mesh.position.z = z
-            //console.log(`mesh ${id} position set to ${x} ${y} ${z}`)
+            mesh.position.set(x, y, z)
         },
         SetRotation: function (x, y, z) {
-            mesh.rotation.x = x
-            mesh.rotation.y = y
-            mesh.rotation.z = z
+            mesh.rotation.set(x, y, z)
         }
     }
 }
@@ -266,6 +337,7 @@ async function LoadFBXObject(caller, url) {
             url,
             (model) => {
                 console.log(model)
+                model.castShadow = true
                 res({
                     obj: model,
                     SetScale: function (x, y, z) {
@@ -279,6 +351,7 @@ async function LoadFBXObject(caller, url) {
                                 return
                             }
                             child.material = material
+                            child.castShadow = true
                         })
                     },
                     SetPosition: function (x, y, z) {

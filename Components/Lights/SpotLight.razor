@@ -9,8 +9,6 @@
 </CascadingValue>
 
 @code {
-    public uint Id = 0;
-
     public IJSObjectReference ObjRef { get; private set; } = null!;
 
     [CascadingParameter]
@@ -20,10 +18,25 @@
     public RenderFragment ChildContent { get; set; } = default!;
 
     [Parameter]
+    public bool CastShadow { get; set; }
+
+    [Parameter]
     public Color Color { get; set; } = Color.WhiteSmoke;
 
     [Parameter]
     public float Intesity { get; set; } = 1;
+
+    [Parameter]
+    public float Distance { get; set; } = 0;
+
+    [Parameter]
+    public float Angle { get; set; } = 0;
+
+    [Parameter]
+    public float Penumbra { get; set; } = 0;
+
+    [Parameter]
+    public float Decay { get; set; } = 2;
 
     [Parameter]
     public float X { get; set; } = 0;
@@ -49,14 +62,11 @@
     {
         if (scene is null)
         {
-            throw new ArgumentNullException(nameof(scene), "directional light must exist within a scene");
+            throw new ArgumentNullException(nameof(scene), "PointLight must exist within a scene");
         }
 
-        Id = Interlocked.Increment(ref IdCounter.Counter);
-        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateDirectionalLight",
-        Id,
-        $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}",
-        Intesity);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateSpotLight", $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}",
+        Intesity, Distance, Angle, Penumbra, Decay, CastShadow);
 
         await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
         await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
@@ -73,5 +83,21 @@
             await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
             await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
         }
+    }
+
+    public async Task SetPosition(float x, float y, float z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+        await ObjRef!.InvokeVoidAsync("SetPosition", X, Y, Z);
+    }
+
+    public async Task SetRotation(float x, float y, float z)
+    {
+        RotateX = x;
+        RotateY = y;
+        RotateZ = z;
+        await ObjRef!.InvokeVoidAsync("SetRotation", x, y, z);
     }
 }

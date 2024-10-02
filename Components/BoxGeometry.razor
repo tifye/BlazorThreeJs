@@ -5,6 +5,8 @@
 @code {
     public uint Id { get; set; } = 0;
 
+    public IJSObjectReference ObjRef { get; set; } = null!;
+
     [Parameter]
     public float Width { get; set; } = 1;
 
@@ -25,7 +27,7 @@
         }
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
-        await JS.InvokeVoidAsync("CreateBoxGeometry", Id, Width, Height, Depth);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateBoxGeometry", Id, Width, Height, Depth);
 
         await mesh.SetGeometry(this);
     }

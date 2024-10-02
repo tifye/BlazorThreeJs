@@ -2,33 +2,54 @@
 
 @using BlazorThreeJs.Components
 @using System.Drawing;
+@using BlazorThreeJs.Components.Lights
+@using BlazorThreeJs.Components.Materials
 
 @inject IJSRuntime JS
 
 <PageTitle>Mower</PageTitle>
 
-<main class="grid grid-cols-2 gap-4 w-max h-max">
-    <section class="size-[1000px]">
-        <Renderer Width="1000" Height="1000">
-            <Scene>
-                <Camera Z="50" Y="15" Context="Cam">
-                    <OrbitControls Camera="Cam" AutoRotate="true" />
-                </Camera>
-                <HemisphereLight SkyColor="Color.White" GroundColor="Color.White" Intesity="5" />
-                <DirectionalLight Color="Color.White" Y="1" X="2" RotateX="180" Intesity="9" />
+<section class="size-[1000px] border border-amber-500 shadow-lg shadow-neutral-900">
+    <Renderer Width="1000" Height="1000">
+        <Scene>
+            <Camera Z="50" Y="15" Context="Cam">
+                <OrbitControls Camera="Cam" AutoRotate="false" />
+            </Camera>
+            <HemisphereLight SkyColor="Color.White" Intesity="0.01f"/>
+            <PointLight Y="15" Decay="0.25f" Distance="100" />
+            <PointLight Y="15" Color="Color.White" Intesity="0.25f" Decay="0.25f" Distance="0" />
+            <SpotLight @ref="blueLight" CastShadow Color="Color.SkyBlue" Y="45" X="80" Penumbra="0.59f" Distance="500" Decay="0.25f"
+                Angle="MathF.PI/4">
+                @* <SpotLightHelper LiveUpdate /> *@
+            </SpotLight>
+            <SpotLight @ref="redLight" CastShadow Color="Color.Red" Intesity="2" Y="25" X="-80" Penumbra="0.99f" Distance="500" Decay="0.25f"
+                Angle="MathF.PI/4">
+                @* <SpotLightHelper LiveUpdate /> *@
+            </SpotLight>
 
-                <FBXModel Url="/models/P3.fbx" Z="-8" Scale="new(0.02f, 0.02f, 0.02f)">
-                    <MeshPhongMaterial Color="Color.Gray" />
-                </FBXModel>
-            </Scene>
-        </Renderer>
-    </section>
-</main>
+            <FBXModel Url="/models/P25.fbx" Z="30" X="-12" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
+                <MeshLambertMaterial Color="Color.White"/>
+            </FBXModel>
+            <FBXModel Url="/models/P21.fbx" Z="25" X="12" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
+                <MeshToonMaterial Color="Color.LightGray"/>
+            </FBXModel>
+            <FBXModel Url="/models/P3.fbx" Z="-8" X="0" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
+                <MeshPhongMaterial Color="Color.LightGray"/>
+            </FBXModel>
+            <Mesh RotationX="-MathF.PI /2">
+                <PlaneGeometry Width="10000" Height="10000" />
+                <MeshPhongMaterial Color="Color.White" />
+            </Mesh>
+        </Scene>
+    </Renderer>
+</section>
 
 @code {
     private DotNetObjectReference<Mower> objRef = null!;
     private DateTime firstTick = DateTime.Now;
 
+    private SpotLight blueLight { get; set; } = null!;
+    private SpotLight redLight { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,8 +58,13 @@
     }
 
     [JSInvokable]
-    public void OnAnimationFrame(double delta)
+    public async Task OnAnimationFrame(double delta)
     {
         TimeSpan eslaped = DateTime.Now - firstTick;
+        float speed = 0.25f;
+        float x = MathF.Cos((float)eslaped.TotalSeconds * speed)*80;
+        float y = MathF.Sin((float)eslaped.TotalSeconds * speed)*80;
+        await blueLight.SetPosition(x, blueLight.Y, y);
+        await redLight.SetPosition(-x, blueLight.Y, -y);
     }
 }

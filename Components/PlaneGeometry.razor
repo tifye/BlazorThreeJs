@@ -8,13 +8,10 @@
     public IJSObjectReference ObjRef { get; set; } = null!;
 
     [Parameter]
-    public uint WidthSegments { get; set; } = 1;
+    public float Width { get; set; } = 1;
 
     [Parameter]
-    public uint HeightSegments { get; set; } = 1;
-
-    [Parameter]
-    public float Radius { get; set; } = 1;
+    public float Height { get; set; } = 1;
 
     [CascadingParameter]
     private Mesh mesh { get; set; } = null!;
@@ -23,11 +20,11 @@
     {
         if (mesh is null)
         {
-            throw new ArgumentNullException(nameof(mesh), "sphere geomtry must exist within a mesh");
+            throw new ArgumentNullException(nameof(mesh), "box geomtry must exist within a mesh");
         }
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
-        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateSphereGeometry", Id, Radius, WidthSegments, HeightSegments);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreatePlaneGeometry", Width, Height);
 
         await mesh.SetGeometry(this);
     }

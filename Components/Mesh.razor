@@ -80,8 +80,9 @@
     private async Task CreateMesh()
     {
         if (Geometry is null || Material is null) return;
-        meshRef = await JS.InvokeAsync<IJSObjectReference>("CreateMesh", Id, Geometry.Id, Material.Id, CastShadow);
+        meshRef = await JS.InvokeAsync<IJSObjectReference>("CreateMesh", Id, Geometry.ObjRef, Material.ObjRef, CastShadow);
         await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+        await meshRef.InvokeVoidAsync("SetRotation", RotationX, RotationY, RotationZ);
         Console.WriteLine("addming mesh to scene");
         await scene.AddObject(ObjRef);
         await scene.Render();
@@ -106,5 +107,6 @@
     public interface IGeomtry
     {
         public uint Id { get; }
+        IJSObjectReference ObjRef { get; }
     }
 }

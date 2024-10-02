@@ -1,0 +1,40 @@
+@using System.Drawing
+@using Microsoft.JSInterop
+
+@namespace BlazorThreeJs.Components.Lights
+
+@inject IJSRuntime JS
+
+@code {
+    public uint Id = 0;
+
+    public IJSObjectReference ObjRef { get; private set; } = null!;
+
+    [CascadingParameter]
+    private Scene scene { get; set; } = null!;
+
+    [CascadingParameter]
+    private SpotLight light { get; set; } = null!;
+
+    [Parameter]
+    public bool LiveUpdate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (scene is null)
+        {
+            throw new ArgumentNullException(nameof(scene), "SpotLightHelper must exist within a scene");
+        }
+
+        if (light is null)
+        {
+            throw new ArgumentNullException(nameof(scene), "SpotLightHelper must exist within a light");
+        }
+
+        light.OnObjCreated += async (IJSObjectReference objRef) =>
+        {
+            ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateSpotLightHelper", objRef, LiveUpdate);
+            await scene.AddObject(ObjRef);
+        };
+    }
+}

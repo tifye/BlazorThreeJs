@@ -27,8 +27,6 @@
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
         ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateHemisphereLight",
-        Id,
-        scene.Id,
         $"#{SkyColor.R:X2}{SkyColor.G:X2}{SkyColor.B:X2}",
         $"#{GroundColor.R:X2}{GroundColor.G:X2}{GroundColor.B:X2}",
         Intesity);
