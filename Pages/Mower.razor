@@ -15,7 +15,7 @@
             <Camera Z="50" Y="15" Context="Cam">
                 <OrbitControls Camera="Cam" AutoRotate="false" />
             </Camera>
-            <HemisphereLight SkyColor="Color.White" Intesity="0.01f"/>
+            <HemisphereLight SkyColor="Color.Black" GroundColor="Color.Pink" Intesity="1f"/>
             <PointLight Y="15" Decay="0.25f" Distance="100" />
             <PointLight Y="15" Color="Color.White" Intesity="0.25f" Decay="0.25f" Distance="0" />
             <SpotLight @ref="blueLight" CastShadow Color="Color.SkyBlue" Y="45" X="80" Penumbra="0.59f" Distance="500" Decay="0.25f"
@@ -26,6 +26,8 @@
                 Angle="MathF.PI/4">
                 @* <SpotLightHelper LiveUpdate /> *@
             </SpotLight>
+
+
 
             <FBXModel Url="/models/P25.fbx" Z="30" X="-12" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
                 <MeshLambertMaterial Color="Color.White"/>

@@ -92,6 +92,11 @@ function CreateHemisphereLight(sky, ground, intensity) {
 window.CreateDirectionalLightHelper = CreateDirectionalLightHelper
 function CreateDirectionalLightHelper(light, size) {
     const helper = new THREE.DirectionalLightHelper(light.obj, size)
+    function f() {
+        helper.update()
+        requestAnimationFrame(f)
+    }
+    requestAnimationFrame(f)
     return {
         obj: helper
     }
