@@ -1,3 +1,5 @@
+@implements IMaterialApplicable
+
 @inject IJSRuntime JS
 
 <CascadingValue Value="this">
@@ -9,6 +11,8 @@
 
     private IJSObjectReference? meshRef { get; set; }
 
+    public IJSObjectReference ObjRef => meshRef!;
+
     public uint Id = 0;
 
     [CascadingParameter]
@@ -16,7 +20,7 @@
 
     public IGeomtry? Geometry { get; set; }
 
-    public MeshPhongMaterial? Material { get; set; }
+    public IMaterial? Material { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; } = null!;
@@ -61,14 +65,13 @@
             await meshRef.InvokeVoidAsync("SetRotation", RotationX, RotationY, RotationZ);
         }
     }
-
     internal async Task SetGeometry(IGeomtry geo)
     {
         Geometry = geo;
         await CreateMesh();
     }
 
-    internal async Task SetMaterial(MeshPhongMaterial mat)
+    public async Task SetMaterial(IMaterial mat)
     {
         Material = mat;
         await CreateMesh();
@@ -79,7 +82,8 @@
         if (Geometry is null || Material is null) return;
         meshRef = await JS.InvokeAsync<IJSObjectReference>("CreateMesh", Id, Geometry.Id, Material.Id, CastShadow);
         await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
-        await JS.InvokeVoidAsync("AddMeshToScene", Id, scene.Id);
+        Console.WriteLine("addming mesh to scene");
+        await scene.AddObject(ObjRef);
         await scene.Render();
     }
 
@@ -88,7 +92,7 @@
         X = x;
         Y = y;
         Z = z;
-        await meshRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+        await meshRef!.InvokeVoidAsync("SetPosition", X, Y, Z);
     }
 
     public async Task SetRotation(float x, float y, float z)
@@ -96,7 +100,7 @@
         RotationX = x;
         RotationY = y;
         RotationZ = z;
-        await meshRef.InvokeVoidAsync("SetRotation", x, y, z);
+        await meshRef!.InvokeVoidAsync("SetRotation", x, y, z);
     }
 
     public interface IGeomtry

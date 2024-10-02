@@ -1,0 +1,23 @@
+@inject IJSRuntime JS
+
+@code {
+    [Parameter, EditorRequired]
+    public Camera Camera { get; set; } = null!;
+
+    [CascadingParameter]
+    public Renderer Renderer { get; set; } = null!;
+
+    [Parameter]
+    public bool AutoRotate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Renderer.OnRendererReady += OnRendererReady;
+    }
+
+    private void OnRendererReady(object? sender, EventArgs args)
+    {
+        _ = JS.InvokeAsync<IJSObjectReference>("CreateOrbitControls", Camera.ObjRef, Renderer.ObjRef, AutoRotate);
+        Renderer.OnRendererReady += OnRendererReady;
+    }
+}

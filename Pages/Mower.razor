@@ -1,0 +1,44 @@
+@page "/mower"
+
+@using BlazorThreeJs.Components
+@using System.Drawing;
+
+@inject IJSRuntime JS
+
+<PageTitle>Mower</PageTitle>
+
+<main class="grid grid-cols-2 gap-4 w-max h-max">
+    <section class="size-[1000px]">
+        <Renderer Width="1000" Height="1000">
+            <Scene>
+                <Camera Z="50" Y="15" Context="Cam">
+                    <OrbitControls Camera="Cam" AutoRotate="true" />
+                </Camera>
+                <HemisphereLight SkyColor="Color.White" GroundColor="Color.White" Intesity="5" />
+                <DirectionalLight Color="Color.White" Y="1" X="2" RotateX="180" Intesity="9" />
+
+                <FBXModel Url="/models/P3.fbx" Z="-8" Scale="new(0.02f, 0.02f, 0.02f)">
+                    <MeshPhongMaterial Color="Color.Gray" />
+                </FBXModel>
+            </Scene>
+        </Renderer>
+    </section>
+</main>
+
+@code {
+    private DotNetObjectReference<Mower> objRef = null!;
+    private DateTime firstTick = DateTime.Now;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        objRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("RegisterOnAnimationFrame", objRef);
+    }
+
+    [JSInvokable]
+    public void OnAnimationFrame(double delta)
+    {
+        TimeSpan eslaped = DateTime.Now - firstTick;
+    }
+}

@@ -1,15 +1,31 @@
 @inject IJSRuntime JS
 
-<CascadingValue Value="this">
-    @ChildContent
-</CascadingValue>
+<canvas @ref="canvas" width="@Width" height="@Height" class="!size-[100%]">
+    <CascadingValue Value="this" IsFixed>
+        @ChildContent
+    </CascadingValue>
+</canvas>
 
 @code {
     private List<Scene> scenes = new();
     private Scene? activeScene;
 
+    public bool RendererCreated = false;
+
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public int Width { get; set; } = 300;
+
+    [Parameter, EditorRequired]
+    public int Height { get; set; } = 150;
+
+    private ElementReference canvas { get; set; }
+
+    public IJSObjectReference ObjRef { get; set; } = null!;
+
+    public EventHandler? OnRendererReady;
 
     internal void AddScene(Scene scene)
     {
@@ -21,13 +37,16 @@
         StateHasChanged();
     }
 
-    internal async Task RenderSceneAsync(uint scene, uint camera)
+    protected override async Task OnAfterRenderAsync(bool first)
     {
-        await JS.InvokeVoidAsync("RenderScene", scene, camera);
+        if (!first || RendererCreated) return;
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateRenderer", canvas);
+        RendererCreated = true;
+        OnRendererReady?.Invoke(this, EventArgs.Empty);
     }
 
-    protected override async Task OnInitializedAsync()
+    internal async Task RenderSceneAsync(IJSObjectReference scene, IJSObjectReference camera)
     {
-        await JS.InvokeVoidAsync("CreateRenderer");
+        await ObjRef.InvokeVoidAsync("RenderScene", scene, camera);
     }
 }

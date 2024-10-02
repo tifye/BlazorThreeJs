@@ -19,26 +19,26 @@ scene.add(cube)
 const light = new THREE.HemisphereLight(0x5555ff, 0xffaa44, 10)
 scene.add(light)
 
-const shadow = new THREE.DirectionalLight(0xffffff)
-shadow.position.y = 1
-shadow.rotateX = 180
-shadow.castShadow = true
-scene.add(shadow)
+// const shadow = new THREE.DirectionalLight(0xffffff)
+// shadow.position.y = 1
+// shadow.rotateX = 180
+// shadow.castShadow = true
+// scene.add(shadow)
 
-const gGeo = new THREE.PlaneGeometry(10, 10)
-const gMat = new THREE.MeshPhongMaterial({ color: 0x229944 })
-const ground = new THREE.Mesh(gGeo, gMat)
-ground.receiveShadow = true
-ground.position.y = -1
-ground.rotation.x = -45
-scene.add(ground)
+// const gGeo = new THREE.PlaneGeometry(10, 10)
+// const gMat = new THREE.MeshPhongMaterial({ color: 0x229944 })
+// const ground = new THREE.Mesh(gGeo, gMat)
+// ground.receiveShadow = true
+// ground.position.y = -1
+// ground.rotation.x = -45
+// scene.add(ground)
 
-const controls = new OrbitControls( camera, renderer.domElement );
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 function animate() {
-    cube.rotation.x += 0.01
-    cube.rotation.y += 0.01
+    // cube.rotation.x += 0.01
+    // cube.rotation.y += 0.01
 
     renderer.render(scene, camera)
 }

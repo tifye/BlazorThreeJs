@@ -4,6 +4,8 @@
 @code {
     public uint Id = 0;
 
+    public IJSObjectReference ObjRef { get; private set; } = null!;
+
     [CascadingParameter]
     private Scene scene { get; set; } = null!;
 
@@ -40,19 +42,14 @@
         }
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
-        await JS.InvokeVoidAsync("CreateDirectionalLight",
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateDirectionalLight",
         Id,
-        scene.Id,
         $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}",
         Intesity);
-    }
 
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (first)
-        {
-            await JS.InvokeVoidAsync("SetLightPosition", Id, X, Y, Z);
-            await JS.InvokeVoidAsync("SetLightRotate", Id, RotateX, RotateY, RotateZ);
-        }
+        await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+        await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
+
+        await scene.AddObject(ObjRef);
     }
 }

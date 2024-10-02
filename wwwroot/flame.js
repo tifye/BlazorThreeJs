@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
 
 window.RegisterOnAnimationFrame = RegisterOnAnimationFrame
 function RegisterOnAnimationFrame(dotNetHelper) {
@@ -16,41 +17,23 @@ function RegisterOnAnimationFrame(dotNetHelper) {
 }
 
 
-let renderer = null
 window.CreateRenderer = CreateRenderer
-function CreateRenderer() {
-    if (renderer !== null) {
-        console.error("only one renderer can be created")
-    }
-
-    renderer = new THREE.WebGLRenderer()
-    renderer.setSize(window.innerWidth, window.innerHeight)
+function CreateRenderer(canvas) {
+    const renderer = new THREE.WebGLRenderer({
+        //antialias: true,
+        canvas: canvas,
+        alpha: true,
+    })
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight)
     renderer.shadowMap.enabled = true
-    document.body.appendChild(renderer.domElement)
     console.log("renderer created")
-}
 
-window.RenderScene = RenderScene
-function RenderScene(sceneId, cameraId) {
-    const scene = scenes.get(sceneId)
-    if (scene === undefined) {
-        console.error(`could not find scene with id ${sceneId}`)
-        return
+    return {
+        obj: renderer,
+        RenderScene: function (scene, camera) {
+            renderer.setAnimationLoop(() => renderer.render(scene.obj, camera.obj))
+        }
     }
-
-    const camera = cameras.get(cameraId)
-    if (camera === undefined) {
-        console.error(`could not find camera with id ${cameraId}`)
-        return
-    }
-
-    if (renderer === null) {
-        console.error("renderer not set")
-        return
-    }
-
-    console.log(`rendering scene ${sceneId} with camera ${cameraId}`)
-    renderer.setAnimationLoop(() => renderer.render(scene, camera))
 }
 
 const scenes = new Map()
@@ -59,6 +42,12 @@ function CreateScene(id) {
     const scene = new THREE.Scene()
     scenes.set(id, scene)
     console.log(`scene created with id ${id}`)
+    return {
+        obj: scene,
+        Add: function (objRep) {
+            scene.add(objRep.obj)
+        }
+    }
 }
 
 const lights = new Map()
@@ -74,25 +63,52 @@ function CreateHemisphereLight(id, sceneId, sky, ground, intensity) {
     lights.set(id, light)
     console.log(`created hemisphere light with id ${id}`)
 
-    scene.add(light)
-    console.log(`added light ${id} to scene ${sceneId}`)
+    // scene.add(light)
+    // console.log(`added light ${id} to scene ${sceneId}`)
+
+    return {
+        obj: light,
+        SetPosition: function (x, y, z) {
+            light.position.x = x
+            light.position.y = y
+            light.position.z = z
+            console.log(`light position set to ${x} ${y} ${z}`)
+        },
+        SetRotation: function (x, y, z) {
+            light.rotateX = x
+            light.rotateY = y
+            light.rotateZ = z
+            console.log(`light rotate set to ${x} ${y} ${z}`)
+        }
+    }
 }
 
 window.CreateDirectionalLight = CreateDirectionalLight
-function CreateDirectionalLight(id, sceneId, color, intensity) {
-    const scene = scenes.get(sceneId)
-    if (scene === undefined) {
-        console.error(`could not find scene with id ${sceneId}`)
-        return
-    }
+function CreateDirectionalLight(id, color, intensity) {
 
     const light = new THREE.DirectionalLight(color, intensity)
     light.castShadow = true
     lights.set(id, light)
     console.log(`created driectional light with id ${id}`)
 
-    scene.add(light)
-    console.log(`added light ${id} to scene ${sceneId}`)
+    // scene.add(light)
+    // console.log(`added light ${id} to scene ${sceneId}`)
+
+    return {
+        obj: light,
+        SetPosition: function (x, y, z) {
+            light.position.x = x
+            light.position.y = y
+            light.position.z = z
+            console.log(`light position set to ${x} ${y} ${z}`)
+        },
+        SetRotation: function (x, y, z) {
+            light.rotateX = x
+            light.rotateY = y
+            light.rotateZ = z
+            console.log(`light rotate set to ${x} ${y} ${z}`)
+        }
+    }
 }
 
 window.SetLightPosition = SetLightPosition
@@ -128,12 +144,36 @@ const cameras = new Map()
 window.CreateCamera = CreateCamera
 function CreateCamera(id) {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    camera.position.set(0, 0, 4)
     cameras.set(id, camera)
     console.log(`camera created with id ${id}`)
+    return {
+        obj: camera,
+        SetPosition: function (x, y, z) {
+            console.log("SetPosition", x, y, z)
+            camera.position.set(x, y, z)
+        },
+        SetRotation: function (x, y, z) {
+            console.log("SetRotation", x, y, z)
+            camera.rotation.set(x, y, z)
+        }
+    }
+}
 
-    controls = new OrbitControls( camera, renderer.domElement )
+window.CreateOrbitControls = CreateOrbitControls
+function CreateOrbitControls(camera, renderer, autoRotate) {
+    controls = new OrbitControls(camera.obj, renderer.obj.domElement)
     controls.update()
+    controls.autoRotate = autoRotate
+    if (controls.autoRotate) {
+        function f() {
+            controls.update()
+            requestAnimationFrame(f)
+        }
+        requestAnimationFrame(f)
+    }
+    return {
+        obj: controls
+    }
 }
 
 const geomtries = new Map()
@@ -157,6 +197,9 @@ function CreateMeshPhongMaterial(id, color) {
     const material = new THREE.MeshPhongMaterial({ color })
     materials.set(id, material)
     console.log(`phong material created with id ${id} and color ${color}`)
+    return {
+        obj: material
+    }
 }
 
 const meshs = new Map()
@@ -171,7 +214,7 @@ function CreateMesh(id, geoId, matId, castShadow) {
     const mat = materials.get(matId)
     if (mat === undefined) {
         console.error(`could not find material with id ${matId}`)
-        return        
+        return
     }
 
     const mesh = new THREE.Mesh(geo, mat)
@@ -180,20 +223,21 @@ function CreateMesh(id, geoId, matId, castShadow) {
     console.log(`mesh created with id ${id}`)
 
     return {
-        mesh,
-        SetPosition: function(x, y, z) {
+        obj: mesh,
+        SetPosition: function (x, y, z) {
             mesh.position.x = x
             mesh.position.y = y
             mesh.position.z = z
             //console.log(`mesh ${id} position set to ${x} ${y} ${z}`)
         },
-        SetRotation: function(x, y, z) {
+        SetRotation: function (x, y, z) {
             mesh.rotation.x = x
             mesh.rotation.y = y
             mesh.rotation.z = z
         }
     }
 }
+
 
 window.AddMeshToScene = AddMeshToScene
 function AddMeshToScene(meshId, sceneId) {
@@ -211,4 +255,51 @@ function AddMeshToScene(meshId, sceneId) {
 
     scene.add(mesh)
     console.log(`added mesh ${meshId} to scene ${sceneId}`)
+}
+
+window.LoadFBXObject = LoadFBXObject
+async function LoadFBXObject(caller, url) {
+    const fbxloader = new FBXLoader()
+
+    return new Promise((res, rej) => {
+        fbxloader.load(
+            url,
+            (model) => {
+                console.log(model)
+                res({
+                    obj: model,
+                    SetScale: function (x, y, z) {
+                        console.log("SetScale", x, y, z)
+                        model.scale.set(x, y, z)
+                    },
+                    SetMaterial: function (matHolder) {
+                        const material = matHolder.obj
+                        model.traverse(function (child) {
+                            if (!child.isMesh) {
+                                return
+                            }
+                            child.material = material
+                        })
+                    },
+                    SetPosition: function (x, y, z) {
+                        model.position.set(x, y, z)
+                    },
+                    SetRotation: function (x, y, z) {
+                        model.rotation.set(x, y, z)
+                    }
+                })
+            },
+            (xhr) => {
+                // Can report this back to C#
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+                if (xhr.loaded - xhr.total < 0.00001) {
+                    caller.invokeMethodAsync("OnModelLoaded")
+                }
+            },
+            (error) => {
+                console.log(error)
+                rej(error)
+            }
+        )
+    })
 }

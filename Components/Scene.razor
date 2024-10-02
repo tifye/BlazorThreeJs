@@ -6,10 +6,11 @@
 
 @code {
     private static uint IdCounter = 0;
-
     public uint Id = 0;
 
-    private Camera? camera;
+    public IJSObjectReference ObjRef { get; set; } = null!;
+
+    public Camera? Camera;
 
     [CascadingParameter]
     private Renderer renderer { get; set; } = null!;
@@ -21,26 +22,51 @@
     {
         if (renderer is null)
         {
-            throw new ArgumentNullException(nameof(renderer), "Scene must be child of <Renderer>");
+            throw new ArgumentNullException(nameof(renderer), "Scene must be child of Renderer");
         }
 
         Id = Interlocked.Increment(ref IdCounter);
-        await JS.InvokeVoidAsync("CreateScene", Id);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateScene", Id);
+        renderer.AddScene(this);
     }
 
-    internal void SetCamera(Camera c)
+    internal async Task SetCamera(Camera c)
     {
-        this.camera = c;
-        _ = renderer.RenderSceneAsync(Id, c.Id);
-        StateHasChanged();
+        this.Camera = c;
+
+        if (renderer.RendererCreated)
+        {
+            await renderer.RenderSceneAsync(ObjRef, c.ObjRef);
+            return;
+        }
+
+        renderer.OnRendererReady += OnRendererReady;
+    }
+
+    private void OnRendererReady(object? sender, EventArgs args)
+    {
+        _ = renderer.RenderSceneAsync(ObjRef, Camera!.ObjRef);
+        renderer.OnRendererReady -= OnRendererReady;
+    }
+
+    internal async Task AddObject(IJSObjectReference obj)
+    {
+        await ObjRef.InvokeVoidAsync("Add", obj);
     }
 
     public async Task Render()
     {
-        if (camera is null)
+        if (Camera is null)
         {
-            throw new ArgumentNullException(nameof(camera));
+            throw new ArgumentNullException(nameof(Camera));
         }
-        await renderer.RenderSceneAsync(Id, camera.Id);
+
+        if (!renderer.RendererCreated)
+        {
+            Console.WriteLine("Trying to render when renderer has not yet been created");
+            return;
+        }
+
+        await renderer.RenderSceneAsync(ObjRef, Camera.ObjRef);
     }
 }

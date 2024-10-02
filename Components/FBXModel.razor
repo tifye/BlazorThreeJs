@@ -1,0 +1,93 @@
+@using System.Numerics
+@implements IMaterialApplicable
+
+@inject IJSRuntime JS
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    public IJSObjectReference ObjRef { get; private set; } = null!;
+
+    [CascadingParameter]
+    private Scene scene { get; set; } = null!;
+
+    [Parameter]
+    public string Url { get; set; } = string.Empty;
+
+    [Parameter]
+    public Vector3 Scale { get; set; } = new(1, 1, 1);
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter]
+    public float RotateX { get; set; } = 0;
+
+    [Parameter]
+    public float RotateY { get; set; } = 0;
+
+    [Parameter]
+    public float X { get; set; } = 0;
+
+    [Parameter]
+    public float Y { get; set; } = 0;
+
+    [Parameter]
+    public float Z { get; set; } = 0;
+
+
+    [Parameter]
+    public float RotateZ { get; set; } = 0;
+
+    public IMaterial? Material { get; set; }
+
+    private DotNetObjectReference<FBXModel> thisObjRef = null!;
+
+    private bool isObjInitialized = false;
+    private Action? OnObjCreated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (scene is null)
+        {
+            throw new ArgumentNullException(nameof(scene), "hemishpere light must exist within a scene");
+        }
+
+        thisObjRef = DotNetObjectReference.Create(this);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("LoadFBXObject", thisObjRef, Url);
+        isObjInitialized = true;
+        await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+        await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
+        OnObjCreated?.Invoke();
+        OnObjCreated = null;
+
+        await scene.AddObject(ObjRef);
+    }
+
+    public async Task SetMaterial(IMaterial mat)
+    {
+        Material = mat;
+        if (isObjInitialized)
+        {
+            await ObjRef.InvokeVoidAsync("SetMaterial", Material.ObjRef);
+        }
+        else
+        {
+            OnObjCreated += async () => await ObjRef.InvokeVoidAsync("SetMaterial", Material.ObjRef);
+        }
+    }
+
+    [JSInvokable]
+    public void OnModelLoaded()
+    {
+        Console.WriteLine("Model loaded");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (ObjRef is null) return;
+        await ObjRef.InvokeVoidAsync("SetScale", Scale.X, Scale.Y, Scale.Z);
+    }
+}

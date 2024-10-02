@@ -1,12 +1,42 @@
 @inject IJSRuntime JS
 
+@if (ChildContent is not null)
+{
+    @ChildContent(this)
+}
+
 @code {
     private static uint IdCounter = 0;
+
+    public IJSObjectReference ObjRef { get; set; } = null!;
+
+    [Parameter]
+    public RenderFragment<Camera> ChildContent { get; set; } = default!;
 
     public uint Id = 0;
 
     [CascadingParameter]
     private Scene scene { get; set; } = null!;
+
+    [Parameter]
+    public float X { get; set; } = 0;
+
+    [Parameter]
+    public float Y { get; set; } = 0;
+
+    [Parameter]
+    public float Z { get; set; } = 0;
+
+    [Parameter]
+    public float RotateX { get; set; } = 0;
+
+    [Parameter]
+    public float RotateY { get; set; } = 0;
+
+
+    [Parameter]
+    public float RotateZ { get; set; } = 0;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -16,8 +46,10 @@
         }
 
         Id = Interlocked.Increment(ref IdCounter);
-        await JS.InvokeVoidAsync("CreateCamera", Id);
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateCamera", Id);
+        await ObjRef.InvokeVoidAsync("SetPosition", X, Y, Z);
+        await ObjRef.InvokeVoidAsync("SetRotation", RotateX, RotateY, RotateZ);
 
-        scene.SetCamera(this);
+        await scene.SetCamera(this);
     }
 }

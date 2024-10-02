@@ -1,17 +1,19 @@
 @using System.Drawing
+@implements IMaterial
 @inject IJSRuntime JS
 
 @code {
     private static uint IdCounter = 0;
 
-    public uint Id = 0;
+    public uint Id { get; set; } = 0;
+
+    public IJSObjectReference ObjRef { get; set; } = null!;
 
     [Parameter]
     public Color Color { get; set; } = Color.Aqua;
 
     [CascadingParameter]
-    private Mesh mesh { get; set; } = null!;
-
+    private IMaterialApplicable mesh { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -21,7 +23,8 @@
         }
 
         Id = Interlocked.Increment(ref IdCounter);
-        await JS.InvokeVoidAsync("CreateMeshPhongMaterial", Id, $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}");
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateMeshPhongMaterial", Id,
+        $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}");
 
         await mesh.SetMaterial(this);
     }

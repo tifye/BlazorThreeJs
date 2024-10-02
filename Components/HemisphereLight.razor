@@ -4,6 +4,8 @@
 @code {
     public uint Id = 0;
 
+    public IJSObjectReference ObjRef { get; private set; } = null!;
+
     [CascadingParameter]
     private Scene scene { get; set; } = null!;
 
@@ -24,11 +26,13 @@
         }
 
         Id = Interlocked.Increment(ref IdCounter.Counter);
-        await JS.InvokeVoidAsync("CreateHemisphereLight",
+        ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateHemisphereLight",
         Id,
         scene.Id,
         $"#{SkyColor.R:X2}{SkyColor.G:X2}{SkyColor.B:X2}",
         $"#{GroundColor.R:X2}{GroundColor.G:X2}{GroundColor.B:X2}",
         Intesity);
+
+        await scene.AddObject(ObjRef);
     }
 }

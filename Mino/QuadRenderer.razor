@@ -1,14 +1,10 @@
-﻿@page "/"
-
 @using BlazorThreeJs.Components
 @using System.Drawing;
 
 @inject IJSRuntime JS
 
-<PageTitle>Home</PageTitle>
-
-<main class="grid grid-cols-2 gap-4 w-max h-max">
-    <section class="size-[500px]">
+<div class="grid grid-cols-2 gap-4 w-full h-full">
+    <div class="size-[100%]">
         <Renderer Width="500" Height="500">
             <Scene>
                 <Camera Z="4" Context="Cam">
@@ -27,8 +23,8 @@
                 </Mesh>
             </Scene>
         </Renderer>
-    </section>
-    <section class="size-[500px]">
+    </div>
+    <div class="size-[100%]">
         <Renderer Width="500" Height="500">
             <Scene>
                 <Camera Z="4" Context="Cam">
@@ -43,8 +39,8 @@
                 </Mesh>
             </Scene>
         </Renderer>
-    </section>
-    <section class="size-[500px]">
+    </div>
+    <div class="size-[100%]">
         <Renderer Width="500" Height="500">
             <Scene>
                 <Camera Z="4" Context="Cam">
@@ -59,21 +55,36 @@
                 </Mesh>
             </Scene>
         </Renderer>
-    </section>
-    <section class="size-[500px]">
-        <BlazorThreeJs.Mino.QuadRenderer />
-    </section>
-</main>
+    </div>
+    <div class="size-[100%]">
+        <Renderer Width="500" Height="500">
+            <Scene>
+                <Camera Z="4" Context="Cam">
+                    <OrbitControls Camera="Cam" />
+                </Camera>
+                <HemisphereLight SkyColor="Color.Pink" GroundColor="Color.Green" Intesity="3" />
+                <DirectionalLight Color="Color.YellowGreen" Y="1" X="2" RotateX="180" Intesity="2" />
+
+                <Mesh @ref="mesh4" CastShadow="true">
+                    <BoxGeometry Width="1" Height="1" Depth="1" />
+                    <MeshPhongMaterial Color="Color.White" />
+                </Mesh>
+            </Scene>
+        </Renderer>
+    </div>
+</div>
 
 
 @code {
-    private DotNetObjectReference<Home> objRef = null!;
+    private DotNetObjectReference<QuadRenderer> objRef = null!;
 
     private DateTime firstTick = DateTime.Now;
 
     private Mesh mesh1 { get; set; } = null!;
     private Mesh mesh2 { get; set; } = null!;
     private Mesh mesh3 { get; set; } = null!;
+    private Mesh mesh4 { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         objRef = DotNetObjectReference.Create(this);
@@ -89,5 +100,6 @@
         await mesh1.SetRotation(x, 0, z);
         await mesh2.SetRotation(x + 10, 0, z);
         await mesh3.SetRotation(x + 20, 0, z);
+        await mesh4.SetRotation(x + 30, 0, z);
     }
 }
