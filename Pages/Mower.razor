@@ -4,6 +4,7 @@
 @using System.Drawing;
 @using BlazorThreeJs.Components.Lights
 @using BlazorThreeJs.Components.Materials
+@using BlazorThreeJs.Mino
 
 @inject IJSRuntime JS
 
@@ -27,17 +28,8 @@
                 @* <SpotLightHelper LiveUpdate /> *@
             </SpotLight>
 
-
-
-            <FBXModel Url="/models/P25.fbx" Z="30" X="-12" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
-                <MeshLambertMaterial Color="Color.White"/>
-            </FBXModel>
-            <FBXModel Url="/models/P21.fbx" Z="25" X="12" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
-                <MeshToonMaterial Color="Color.LightGray"/>
-            </FBXModel>
-            <FBXModel Url="/models/P3.fbx" Z="-8" X="0" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
-                <MeshPhongMaterial Color="Color.LightGray"/>
-            </FBXModel>
+            <TheSquad />
+            
             <Mesh RotationX="-MathF.PI /2">
                 <PlaneGeometry Width="10000" Height="10000" />
                 <MeshPhongMaterial Color="Color.White" />
