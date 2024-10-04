@@ -21,6 +21,7 @@
 
     protected override void OnInitialized()
     {
+        Console.WriteLine("helper");
         if (scene is null)
         {
             throw new ArgumentNullException(nameof(scene), "SpotLightHelper must exist within a scene");
@@ -31,9 +32,11 @@
             throw new ArgumentNullException(nameof(scene), "SpotLightHelper must exist within a light");
         }
 
+        Console.WriteLine("helper");
         light.OnObjCreated += async (IJSObjectReference objRef) =>
         {
             ObjRef = await JS.InvokeAsync<IJSObjectReference>("CreateSpotLightHelper", objRef, LiveUpdate);
+            Console.WriteLine("meep");
             await scene.AddObject(ObjRef);
         };
     }

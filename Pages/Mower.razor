@@ -10,33 +10,58 @@
 
 <PageTitle>Mower</PageTitle>
 
-<section class="size-[1000px] border border-amber-500 shadow-lg shadow-neutral-900">
-    <Renderer Width="1000" Height="1000">
-        <Scene>
-            <Camera Z="50" Y="15" Context="Cam">
-                <OrbitControls Camera="Cam" AutoRotate="false" />
-            </Camera>
-            <HemisphereLight SkyColor="Color.Black" GroundColor="Color.Pink" Intesity="1f"/>
-            <PointLight Y="15" Decay="0.25f" Distance="100" />
-            <PointLight Y="15" Color="Color.White" Intesity="0.25f" Decay="0.25f" Distance="0" />
-            <SpotLight @ref="blueLight" CastShadow Color="Color.SkyBlue" Y="45" X="80" Penumbra="0.59f" Distance="500" Decay="0.25f"
-                Angle="MathF.PI/4">
-                @* <SpotLightHelper LiveUpdate /> *@
-            </SpotLight>
-            <SpotLight @ref="redLight" CastShadow Color="Color.Red" Intesity="2" Y="25" X="-80" Penumbra="0.99f" Distance="500" Decay="0.25f"
-                Angle="MathF.PI/4">
-                @* <SpotLightHelper LiveUpdate /> *@
-            </SpotLight>
+<div class="flex flex-row">
+    <section class="size-[1000px] border border-amber-500 shadow-lg rounded-full overflow-hidden shadow-neutral-900">
+        <Renderer Width="1000" Height="1000">
+            <Scene>
+                <Camera Z="60" Y="25" Context="Cam">
+                    <OrbitControls Camera="Cam" AutoRotate="true" />
+                </Camera>
+                <HemisphereLight SkyColor="Color.White" GroundColor="Color.White" Intesity="0.05f" />
+                <PointLight Y="15" Decay="0.5f" Distance="100" />
+                <PointLight CastShadow Y="75" Color="Color.SkyBlue" Intesity="0.25f" Decay="0.25f" Distance="0" />
+                <SpotLight @ref="blueLight" CastShadow Color="Color.Blue" Y="45" X="80" Penumbra="0.59f" Distance="500"
+                    Decay="0.25f" Angle="MathF.PI/4">
+                    <SpotLightHelper LiveUpdate />
+                </SpotLight>
+                <SpotLight @ref="redLight" CastShadow Color="Color.Red" Intesity="2" Y="25" X="-80" Penumbra="0.99f"
+                    Distance="500" Decay="0.25f" Angle="MathF.PI/4">
+                    <SpotLightHelper LiveUpdate />
+                </SpotLight>
 
-            <TheSquad />
-            
-            <Mesh RotationX="-MathF.PI /2">
-                <PlaneGeometry Width="10000" Height="10000" />
-                <MeshPhongMaterial Color="Color.White" />
-            </Mesh>
-        </Scene>
-    </Renderer>
-</section>
+                <TheSquad />
+
+                <Mesh RotationX="-MathF.PI /2">
+                    <PlaneGeometry Width="10000" Height="10000" />
+                    <MeshPhongMaterial Color="Color.White" />
+                </Mesh>
+            </Scene>
+        </Renderer>
+    </section>
+    <div class="size-[300px] relative" onmousemove="@MouseMove" onmousedown="@MouseDown" onmouseup="@MouseExit"
+        onmouseleave="@MouseExit" @onmousedown:stopPropagation="true">
+        <div class="direction-thumb rounded-full size-12 absolute"
+            style="--left-percent:@(tLeftPercent)%; --top-percent:@(tTopPercent)%;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"
+                class="absolute text-white left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                    d="M12 5q-.425 0-.712-.288T11 4V2q0-.425.288-.712T12 1t.713.288T13 2v2q0 .425-.288.713T12 5m4.95 2.05q-.275-.275-.275-.687t.275-.713l1.4-1.425q.3-.3.712-.3t.713.3q.275.275.275.7t-.275.7L18.35 7.05q-.275.275-.7.275t-.7-.275M20 13q-.425 0-.713-.288T19 12t.288-.712T20 11h2q.425 0 .713.288T23 12t-.288.713T22 13zm-8 10q-.425 0-.712-.288T11 22v-2q0-.425.288-.712T12 19t.713.288T13 20v2q0 .425-.288.713T12 23M5.65 7.05l-1.425-1.4q-.3-.3-.3-.725t.3-.7q.275-.275.7-.275t.7.275L7.05 5.65q.275.275.275.7t-.275.7q-.3.275-.7.275t-.7-.275m12.7 12.725l-1.4-1.425q-.275-.3-.275-.712t.275-.688t.688-.275t.712.275l1.425 1.4q.3.275.288.7t-.288.725q-.3.3-.725.3t-.7-.3M2 13q-.425 0-.712-.288T1 12t.288-.712T2 11h2q.425 0 .713.288T5 12t-.288.713T4 13zm2.225 6.775q-.275-.275-.275-.7t.275-.7L5.65 16.95q.275-.275.687-.275t.713.275q.3.3.3.713t-.3.712l-1.4 1.4q-.3.3-.725.3t-.7-.3M12 18q-2.5 0-4.25-1.75T6 12t1.75-4.25T12 6t4.25 1.75T18 12t-1.75 4.25T12 18" />
+            </svg>
+        </div>
+        <div
+            class="size-[150px] bg-neutral-200 shadow-lg shadow-black absolute left-1/2 top-1/2 pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full">
+        </div>
+    </div>
+</div>
+
+<style>
+    .direction-thumb {
+        left: var(--left-percent);
+        top: var(--top-percent);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+</style>
 
 @code {
     private DotNetObjectReference<Mower> objRef = null!;
@@ -56,9 +81,40 @@
     {
         TimeSpan eslaped = DateTime.Now - firstTick;
         float speed = 0.25f;
-        float x = MathF.Cos((float)eslaped.TotalSeconds * speed)*80;
-        float y = MathF.Sin((float)eslaped.TotalSeconds * speed)*80;
-        await blueLight.SetPosition(x, blueLight.Y, y);
-        await redLight.SetPosition(-x, blueLight.Y, -y);
+        //float x = MathF.Cos((float)eslaped.TotalSeconds * speed) * 80;
+        //float y = MathF.Sin((float)eslaped.TotalSeconds * speed) * 80;
+
+        float lx = (float)(Math.Cos(angle) * 80);
+        float ly = (float)(Math.Sin(angle) * 80);
+
+        await blueLight.SetPosition(lx, blueLight.Y, ly);
+        await redLight.SetPosition(-lx, blueLight.Y, -ly);
+    }
+
+
+    private double tLeftPercent = 50;
+    private double tTopPercent = 50;
+    private double angle = 0;
+    private bool isDragging;
+    private async Task MouseMove(MouseEventArgs args)
+    {
+        if (!isDragging) return;
+        double size = 300;
+        double x = (args.OffsetX / size) - 0.5;
+        double y = (args.OffsetY / size) - 0.5;
+        angle = Math.Atan2(y, x);
+        tLeftPercent = 40 * Math.Cos(angle) + 50;
+        tTopPercent = 40 * Math.Sin(angle) + 50;
+
+    }
+
+    private void MouseDown(MouseEventArgs args)
+    {
+        isDragging = true;
+    }
+
+    private void MouseExit(MouseEventArgs args)
+    {
+        isDragging = false;
     }
 }
