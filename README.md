@@ -1,5 +1,7 @@
 A proof of concept I made in my free time for my work at Husqvarna Robotics R&D. This is a continuation of https://github.com/tifye/SimulatorBlazorComponents but its no longer tied to any of our internal stuff but instead more generic 3D components and uses ThreeJs instead of Unity. The goal with this was to further simplify working with 3D in Blazor projects and to save money on Unity licensing.
 
+It works by using the lifecycle methods of Blazor components to create, update, and destroy ThreeJs objects. This let's you build 3D scenes much in the same way React Three Fiber works.
+
 Sample
 ```razor
 <Renderer Width="1000" Height="1000">
