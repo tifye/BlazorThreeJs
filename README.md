@@ -21,7 +21,16 @@ Sample
             <SpotLightHelper LiveUpdate />
         </SpotLight>
 
-        <TheSquad />
+        
+        <FBXModel Url="/models/P25.fbx" Z="15" X="-12" Y="2.65f" Scale="new(0.02f, 0.02f, 0.02f)">
+            <MeshLambertMaterial Color="Color.White" />
+        </FBXModel>
+        <FBXModel Url="/models/P21.fbx" Z="10" X="12" Y="2.65f" Scale="new(0.02f, 0.02f, 0.02f)">
+            <MeshToonMaterial Color="Color.Orchid" />
+        </FBXModel>
+        <FBXModel Url="/models/P3.fbx" Z="-23" X="0" Y="3" Scale="new(0.02f, 0.02f, 0.02f)">
+            <MeshPhongMaterial Color="Color.White" />
+        </FBXModel>
 
         <Mesh RotationX="-MathF.PI /2">
             <PlaneGeometry Width="10000" Height="10000" />
